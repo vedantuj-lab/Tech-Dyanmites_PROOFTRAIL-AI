@@ -3,3 +3,11 @@
 __pycache__/
 *.pyc
 .DS_Store
+data/
+*.db
+*.sqlite3
+generated_reports/
+*.pdf
+.idea/
+.vscode/
+.pytest_cache/

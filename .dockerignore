@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+data/
+*.db
+*.sqlite3
+generated_reports/
+*.pdf
+.git
+.idea/
+.vscode/
+.pytest_cache/
