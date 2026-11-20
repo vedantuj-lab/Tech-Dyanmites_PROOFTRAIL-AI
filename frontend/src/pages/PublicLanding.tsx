@@ -13,7 +13,6 @@ import {
   FileText,
   Compass,
   Sliders,
-  ExternalLink,
   Globe,
   Upload,
   Network,
@@ -30,7 +29,7 @@ interface PublicLandingProps {
 export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpenSignup }) => {
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-amber-500/20 selection:text-amber-400">
-      {/* 1. Dark Charcoal Navigation Header */}
+      {/* 1. Navigation Header */}
       <header className="h-20 bg-[#0B0F17] border-b border-[#2A364F] px-8 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20">
@@ -49,7 +48,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
           <a href="#how-it-works" className="hover:text-purple-400 transition-colors">How It Works</a>
           <a href="#features" className="hover:text-emerald-400 transition-colors">Features</a>
           <a href="#roles" className="hover:text-rose-400 transition-colors">Role Solutions</a>
-          <a href="#security" className="hover:text-teal-400 transition-colors">Security & RBAC</a>
+          <a href="#security" className="hover:text-teal-400 transition-colors">Security &amp; RBAC</a>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -69,7 +68,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
         </div>
       </header>
 
-      {/* 2. Hero Section — Split Screen with Local SVG Graphic */}
+      {/* 2. Hero Section — Split Screen with Real Professional Photography */}
       <section className="bg-[#0F172A] border-b border-[#1E293B] px-6 py-16 lg:py-24 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column Text & Controls */}
@@ -111,26 +110,36 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
             </div>
           </motion.div>
 
-          {/* Right Column Visual Graphic */}
+          {/* Right Column: Real Professional Photography */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
             className="lg:col-span-6"
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-700 bg-slate-900/80 p-2">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-700 group">
               <img
-                src="/images/landing/hero-illustration.svg"
-                alt="ProofTrail AI Evidence Graph Workspace Illustration"
-                className="w-full h-auto rounded-xl object-cover"
+                src="/images/landing_hero.jpg"
+                alt="Professional Research Analyst Working on Multi-Monitor Desk Setup"
+                className="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="eager"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur border border-slate-700 p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white">Enterprise Research Analyst Workspace</div>
+                  <div className="text-[10px] text-amber-400 font-mono">Multi-stage web search &amp; passage extraction</div>
+                </div>
+                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full">
+                  LIVE VERIFIED
+                </span>
+              </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* 3. Product Preview Section — Warm Light Ivory & Local SVG Preview */}
+      {/* 3. Product Preview Section — Warm Light Ivory & Real Photo Dashboard */}
       <section id="product" className="bg-[#FAF8F5] border-b border-amber-200/60 px-6 py-20 text-gray-900">
         <div className="max-w-6xl mx-auto space-y-10">
           <div className="text-center space-y-3">
@@ -145,18 +154,18 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
             </p>
           </div>
 
-          <div className="bg-white border border-amber-200/80 rounded-2xl p-4 shadow-xl">
+          <div className="bg-white border border-amber-200/80 rounded-2xl p-4 shadow-xl overflow-hidden">
             <img
-              src="/images/landing/product-preview.svg"
-              alt="ProofTrail AI Report & Source Lineage Index Preview"
-              className="w-full h-auto rounded-xl object-cover"
+              src="/images/landing_product_preview.jpg"
+              alt="ProofTrail AI Real Product Dashboard Sourcing Interface"
+              className="w-full h-[400px] object-cover rounded-xl"
               loading="lazy"
             />
           </div>
         </div>
       </section>
 
-      {/* 4. How It Works Section — Light Lavender & 6 Visual Steps */}
+      {/* 4. How It Works Section — Light Lavender & 6 Step Photography Cards */}
       <section id="how-it-works" className="bg-[#F5F3FF] border-b border-purple-200 px-6 py-20 text-gray-900">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
@@ -170,17 +179,24 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { num: '01', title: '1. Ask Research Question', desc: 'Enter any research query or upload document/website targets.' },
-              { num: '02', title: '2. Generate Research Plan', desc: 'Nebius decomposes objective into subquestions and search dimensions.' },
-              { num: '03', title: '3. Retrieve Live Web Sources', desc: 'Executes multi-round Tavily queries across discovery and verification.' },
-              { num: '04', title: '4. Extract Claims & Passages', desc: 'Maps exact verbatim passages directly from raw retrieved text.' },
-              { num: '05', title: '5. Verify & Detect Conflicts', desc: 'Surfaces statistical discrepancies and rates source authority.' },
-              { num: '06', title: '6. Synthesize Report & PDF', desc: 'Validates citations programmatically & generates downloadable PDF.' },
+              { num: '01', title: '1. Ask Research Question', desc: 'Researcher typing a complex question on a laptop.', img: '/images/landing_how_step1.jpg' },
+              { num: '02', title: '2. Generate Research Plan', desc: 'Analyst reviewing research notes and subquestion breakdown.', img: '/images/landing_how_step2.jpg' },
+              { num: '03', title: '3. Retrieve Live Web Sources', desc: 'Researcher examining information across multiple windows.', img: '/images/landing_how_step3.jpg' },
+              { num: '04', title: '4. Extract Claims & Evidence', desc: 'Professional examining printed reports and digital passages.', img: '/images/landing_how_step4.jpg' },
+              { num: '05', title: '5. Verify Claims & Conflicts', desc: 'Analyst comparing official documents and source materials.', img: '/images/landing_how_step5.jpg' },
+              { num: '06', title: '6. Synthesize Report & PDF', desc: 'Research professional presenting findings on a screen.', img: '/images/landing_how_step6.jpg' },
             ].map((step, i) => (
-              <div key={i} className="bg-white border border-purple-200 rounded-2xl p-6 space-y-3 shadow-md hover:border-purple-400 transition-all">
-                <span className="text-3xl font-black text-purple-600">{step.num}</span>
-                <h3 className="text-base font-bold text-purple-950">{step.title}</h3>
-                <p className="text-xs text-purple-800/80 leading-relaxed">{step.desc}</p>
+              <div key={i} className="bg-white border border-purple-200 rounded-2xl overflow-hidden shadow-md hover:border-purple-400 transition-all flex flex-col justify-between">
+                <div className="h-44 overflow-hidden relative">
+                  <img src={step.img} alt={step.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                  <span className="absolute top-3 left-3 bg-purple-900/90 text-white font-black text-xs px-2.5 py-1 rounded-lg">
+                    {step.num}
+                  </span>
+                </div>
+                <div className="p-5 space-y-2">
+                  <h3 className="text-base font-bold text-purple-950">{step.title}</h3>
+                  <p className="text-xs text-purple-800/80 leading-relaxed">{step.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -195,18 +211,18 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
               Comprehensive Feature Capabilities
             </span>
             <h2 className="text-3xl font-extrabold text-white tracking-tight">
-              Built for Verifiable Research & Decision Intelligence
+              Built for Verifiable Research &amp; Decision Intelligence
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: 'Intelligent Planning', desc: 'Nebius subquestion decomposition & research dimensions.', icon: Compass, color: 'text-emerald-400' },
-              { title: 'Live Web Search', desc: 'Multi-stage Tavily queries & URL parameter deduplication.', icon: Search, color: 'text-teal-400' },
+              { title: 'Intelligent Planning', desc: 'Nebius subquestion decomposition &amp; research dimensions.', icon: Compass, color: 'text-emerald-400' },
+              { title: 'Live Web Search', desc: 'Multi-stage Tavily queries &amp; URL parameter deduplication.', icon: Search, color: 'text-teal-400' },
               { title: 'Website Importer', desc: 'Import permitted website URLs with SSRF protection.', icon: Globe, color: 'text-orange-400' },
               { title: 'Document Library', desc: 'Upload PDF, DOCX, TXT, CSV with page parsing.', icon: Upload, color: 'text-violet-400' },
               { title: 'Evidence Explorer', desc: 'Claim matrix with verbatim quoted passages.', icon: ShieldCheck, color: 'text-emerald-300' },
-              { title: 'Conflict Detection', desc: 'Surfaces opposing statistics & timeline differences.', icon: AlertTriangle, color: 'text-rose-400' },
+              { title: 'Conflict Detection', desc: 'Surfaces opposing statistics &amp; timeline differences.', icon: AlertTriangle, color: 'text-rose-400' },
               { title: 'Decision Briefs', desc: 'Executive decision frameworks with recommendations.', icon: Sliders, color: 'text-amber-400' },
               { title: 'PDF Export', desc: 'ReportLab PDF generation with clickable citations.', icon: FileText, color: 'text-slate-300' },
             ].map((feat, i) => {
@@ -223,7 +239,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
         </div>
       </section>
 
-      {/* 6. Role Solutions Section — Deep Plum & Rose */}
+      {/* 6. Role Solutions Section — Deep Plum & Real Photography Cards */}
       <section id="roles" className="bg-[#2E1065] border-b border-purple-900 px-6 py-20 text-white">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
@@ -236,48 +252,57 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#3B0764] border border-rose-500/30 rounded-2xl p-6 space-y-4 shadow-xl">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold">
-                01
+            {/* Researcher */}
+            <div className="bg-[#3B0764] border border-rose-500/30 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between">
+              <div className="h-48 overflow-hidden">
+                <img src="/images/landing_role_researcher.jpg" alt="Researcher Working" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-lg font-bold text-white">Researcher Workspace</h3>
-              <p className="text-xs text-purple-200 leading-relaxed">
-                Conduct multi-stage web investigations, generate research plans, map claims to verbatim evidence, import documents, and export PDF reports.
-              </p>
+              <div className="p-6 space-y-3">
+                <h3 className="text-lg font-bold text-white">Researcher Workspace</h3>
+                <p className="text-xs text-purple-200 leading-relaxed">
+                  Conduct multi-stage web investigations, generate research plans, map claims to verbatim evidence, import documents, and export PDF reports.
+                </p>
+              </div>
             </div>
 
-            <div className="bg-[#3B0764] border border-rose-500/30 rounded-2xl p-6 space-y-4 shadow-xl">
-              <div className="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-400/40 flex items-center justify-center text-pink-300 font-bold">
-                02
+            {/* Reviewer */}
+            <div className="bg-[#3B0764] border border-rose-500/30 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between">
+              <div className="h-48 overflow-hidden">
+                <img src="/images/landing_role_reviewer.jpg" alt="Academic Reviewer Annotating" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-lg font-bold text-white">Analyst / Reviewer Workspace</h3>
-              <p className="text-xs text-purple-200 leading-relaxed">
-                Evaluate evidence quality, annotate claims, analyze statistical conflicts, and issue formal review decisions (`Approved`, `Revision Required`).
-              </p>
+              <div className="p-6 space-y-3">
+                <h3 className="text-lg font-bold text-white">Analyst / Reviewer Workspace</h3>
+                <p className="text-xs text-purple-200 leading-relaxed">
+                  Evaluate evidence quality, annotate claims, analyze statistical conflicts, and issue formal review decisions (`Approved`, `Revision Required`).
+                </p>
+              </div>
             </div>
 
-            <div className="bg-[#3B0764] border border-rose-500/30 rounded-2xl p-6 space-y-4 shadow-xl">
-              <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 font-bold">
-                03
+            {/* Admin */}
+            <div className="bg-[#3B0764] border border-rose-500/30 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between">
+              <div className="h-48 overflow-hidden">
+                <img src="/images/landing_role_admin.jpg" alt="IT Admin Monitoring Environment" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-lg font-bold text-white">Administrator Hub</h3>
-              <p className="text-xs text-purple-200 leading-relaxed">
-                Manage platform users, assign reviewer workloads, monitor AI/search health, and inspect security audit logs.
-              </p>
+              <div className="p-6 space-y-3">
+                <h3 className="text-lg font-bold text-white">Administrator Hub</h3>
+                <p className="text-xs text-purple-200 leading-relaxed">
+                  Manage platform users, assign reviewer workloads, monitor AI/search health, and inspect security audit logs.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 7. Security & RBAC Section — Dark Slate & Teal Graphic */}
+      {/* 7. Security & RBAC Section — Real SOC Operations Photo */}
       <section id="security" className="bg-[#1E293B] border-b border-slate-700 px-6 py-20 text-white">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-6 space-y-6">
             <span className="text-xs font-extrabold text-teal-300 bg-teal-500/20 border border-teal-400/30 px-3 py-1 rounded-full uppercase tracking-wider">
-              Enterprise Security & Integrity
+              Enterprise Security &amp; Integrity
             </span>
             <h2 className="text-3xl font-extrabold text-white tracking-tight">
-              Security Safeguards & Deterministic Citation Validation
+              Security Operations Center &amp; Citation Integrity
             </h2>
 
             <div className="space-y-4 text-xs text-gray-300">
@@ -291,7 +316,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
               <div className="flex items-start gap-3 bg-[#0F172A] p-4 rounded-xl border border-teal-500/30">
                 <Lock className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-white">SSRF & Injection Defense:</strong> Filters prompt injection triggers and blocks private network targets during website imports.
+                  <strong className="text-white">SSRF &amp; Injection Defense:</strong> Filters prompt injection triggers and blocks private network targets during website imports.
                 </div>
               </div>
 
@@ -304,13 +329,15 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({ onOpenLogin, onOpe
             </div>
           </div>
 
-          <div className="lg:col-span-5 flex justify-center">
-            <img
-              src="/images/landing/security-shield.svg"
-              alt="ProofTrail Security Shield"
-              className="w-full max-w-sm h-auto rounded-xl"
-              loading="lazy"
-            />
+          <div className="lg:col-span-6">
+            <div className="rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
+              <img
+                src="/images/landing_security.jpg"
+                alt="Cybersecurity Professional Monitoring SOC Operations"
+                className="w-full h-[360px] object-cover"
+                loading="lazy"
+              />
+            </div>
           </div>
         </div>
       </section>

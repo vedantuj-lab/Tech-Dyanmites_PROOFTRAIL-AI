@@ -145,13 +145,18 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, onSwitchToSignup }) => 
           </div>
         </div>
 
-        {/* Right Side: Visual Graphic Illustration */}
-        <div className="md:col-span-5 bg-[#090D16] p-6 hidden md:flex flex-col justify-center items-center border-l border-[#2A364F]">
+        {/* Right Side: Real Photography Asset */}
+        <div className="md:col-span-5 bg-[#090D16] relative hidden md:block border-l border-[#2A364F] overflow-hidden">
           <img
-            src="/images/authentication/login-hero.svg"
-            alt="ProofTrail Auth Intelligence"
-            className="w-full h-auto rounded-xl object-contain max-h-[450px]"
+            src="/images/authentication_login.jpg"
+            alt="Researcher Working in Office Setup"
+            className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#090D16] via-transparent to-transparent" />
+          <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">
+            <div className="text-sm font-bold">ProofTrail AI Enterprise Hub</div>
+            <div className="text-xs text-amber-400">Verifiable Research &amp; Decision Intelligence</div>
+          </div>
         </div>
       </div>
     </div>
