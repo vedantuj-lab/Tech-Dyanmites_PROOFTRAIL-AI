@@ -7,11 +7,12 @@ export interface FeatureTheme {
   accentBg: string;
   gradientFrom: string;
   gradientTo: string;
+  cardBg: string;
 }
 
 export const FEATURE_THEMES: Record<string, FeatureTheme> = {
   Home: {
-    name: 'Home / Overview',
+    name: 'Landing Page & Overview',
     badgeBg: 'bg-amber-500/10',
     badgeText: 'text-amber-400',
     border: 'border-amber-500/30',
@@ -19,6 +20,18 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-amber-500',
     gradientFrom: 'from-amber-600',
     gradientTo: 'to-amber-400',
+    cardBg: 'bg-[#131B2E]',
+  },
+  Overview: {
+    name: 'Dashboard Overview',
+    badgeBg: 'bg-amber-500/10',
+    badgeText: 'text-amber-400',
+    border: 'border-amber-500/30',
+    accentText: 'text-amber-400',
+    accentBg: 'bg-amber-500',
+    gradientFrom: 'from-amber-600',
+    gradientTo: 'to-amber-400',
+    cardBg: 'bg-[#131B2E]',
   },
   'New Research': {
     name: 'New Research & Planning',
@@ -29,6 +42,7 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-emerald-500',
     gradientFrom: 'from-emerald-600',
     gradientTo: 'to-emerald-400',
+    cardBg: 'bg-[#062016]',
   },
   Workspace: {
     name: 'Research Workspace',
@@ -39,6 +53,7 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-teal-500',
     gradientFrom: 'from-teal-600',
     gradientTo: 'to-teal-400',
+    cardBg: 'bg-[#091E1B]',
   },
   'Website Importer': {
     name: 'Website Importer',
@@ -49,6 +64,7 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-orange-500',
     gradientFrom: 'from-orange-600',
     gradientTo: 'to-orange-400',
+    cardBg: 'bg-[#23150C]',
   },
   'Document Library': {
     name: 'Document Intelligence',
@@ -59,6 +75,7 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-violet-500',
     gradientFrom: 'from-violet-600',
     gradientTo: 'to-violet-400',
+    cardBg: 'bg-[#191329]',
   },
   'Evidence Explorer': {
     name: 'Evidence Explorer',
@@ -69,6 +86,7 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-emerald-400',
     gradientFrom: 'from-emerald-500',
     gradientTo: 'to-emerald-300',
+    cardBg: 'bg-[#06241B]',
   },
   'Evidence Map': {
     name: 'Evidence Map',
@@ -79,6 +97,40 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-rose-500',
     gradientFrom: 'from-rose-600',
     gradientTo: 'to-rose-400',
+    cardBg: 'bg-[#271018]',
+  },
+  'Claim Verification': {
+    name: 'Claim Verification Matrix',
+    badgeBg: 'bg-emerald-500/10',
+    badgeText: 'text-emerald-400',
+    border: 'border-emerald-500/30',
+    accentText: 'text-emerald-400',
+    accentBg: 'bg-emerald-500',
+    gradientFrom: 'from-emerald-600',
+    gradientTo: 'to-emerald-400',
+    cardBg: 'bg-[#0A1F18]',
+  },
+  'Conflict Detection': {
+    name: 'Conflict & Discrepancy Detection',
+    badgeBg: 'bg-rose-600/10',
+    badgeText: 'text-rose-400',
+    border: 'border-rose-600/30',
+    accentText: 'text-rose-400',
+    accentBg: 'bg-rose-600',
+    gradientFrom: 'from-rose-700',
+    gradientTo: 'to-rose-500',
+    cardBg: 'bg-[#290E14]',
+  },
+  'Source Quality': {
+    name: 'Source Quality & Lineage',
+    badgeBg: 'bg-lime-500/10',
+    badgeText: 'text-lime-400',
+    border: 'border-lime-500/30',
+    accentText: 'text-lime-400',
+    accentBg: 'bg-lime-500',
+    gradientFrom: 'from-lime-600',
+    gradientTo: 'to-lime-400',
+    cardBg: 'bg-[#18240B]',
   },
   'Decision Briefs': {
     name: 'Decision Intelligence',
@@ -89,9 +141,10 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-amber-600',
     gradientFrom: 'from-amber-700',
     gradientTo: 'to-amber-500',
+    cardBg: 'bg-[#24150B]',
   },
   'Final Report': {
-    name: 'Final Report & Exports',
+    name: 'Reports & Export',
     badgeBg: 'bg-slate-500/10',
     badgeText: 'text-slate-300',
     border: 'border-slate-500/30',
@@ -99,6 +152,40 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-slate-500',
     gradientFrom: 'from-slate-600',
     gradientTo: 'to-slate-400',
+    cardBg: 'bg-[#131B2E]',
+  },
+  'My Reports': {
+    name: 'My Reports',
+    badgeBg: 'bg-slate-500/10',
+    badgeText: 'text-slate-300',
+    border: 'border-slate-500/30',
+    accentText: 'text-slate-300',
+    accentBg: 'bg-slate-500',
+    gradientFrom: 'from-slate-600',
+    gradientTo: 'to-slate-400',
+    cardBg: 'bg-[#131B2E]',
+  },
+  'Research Collections': {
+    name: 'Research Collections',
+    badgeBg: 'bg-cyan-500/10',
+    badgeText: 'text-cyan-400',
+    border: 'border-cyan-500/30',
+    accentText: 'text-cyan-400',
+    accentBg: 'bg-cyan-500',
+    gradientFrom: 'from-cyan-600',
+    gradientTo: 'to-cyan-400',
+    cardBg: 'bg-[#0B1E28]',
+  },
+  'Source Watchlist': {
+    name: 'Source Watchlist & Alerts',
+    badgeBg: 'bg-lime-400/10',
+    badgeText: 'text-lime-300',
+    border: 'border-lime-400/30',
+    accentText: 'text-lime-300',
+    accentBg: 'bg-lime-400',
+    gradientFrom: 'from-lime-500',
+    gradientTo: 'to-lime-300',
+    cardBg: 'bg-[#12200A]',
   },
   'Research History': {
     name: 'Research History',
@@ -109,6 +196,18 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-indigo-500',
     gradientFrom: 'from-indigo-600',
     gradientTo: 'to-indigo-400',
+    cardBg: 'bg-[#12162B]',
+  },
+  Notifications: {
+    name: 'Notifications & Alerts',
+    badgeBg: 'bg-yellow-500/10',
+    badgeText: 'text-yellow-400',
+    border: 'border-yellow-500/30',
+    accentText: 'text-yellow-400',
+    accentBg: 'bg-yellow-500',
+    gradientFrom: 'from-yellow-600',
+    gradientTo: 'to-yellow-400',
+    cardBg: 'bg-[#241F0B]',
   },
   Reviewer: {
     name: 'Analyst & Reviewer Hub',
@@ -119,6 +218,7 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-pink-500',
     gradientFrom: 'from-pink-600',
     gradientTo: 'to-pink-400',
+    cardBg: 'bg-[#290E20]',
   },
   Admin: {
     name: 'Administrator Control Hub',
@@ -129,5 +229,17 @@ export const FEATURE_THEMES: Record<string, FeatureTheme> = {
     accentBg: 'bg-sky-500',
     gradientFrom: 'from-sky-600',
     gradientTo: 'to-sky-400',
+    cardBg: 'bg-[#0A1A28]',
+  },
+  Settings: {
+    name: 'Settings & System Configuration',
+    badgeBg: 'bg-slate-500/10',
+    badgeText: 'text-slate-300',
+    border: 'border-slate-500/30',
+    accentText: 'text-slate-300',
+    accentBg: 'bg-slate-500',
+    gradientFrom: 'from-slate-600',
+    gradientTo: 'to-slate-400',
+    cardBg: 'bg-[#131B2E]',
   },
 };
