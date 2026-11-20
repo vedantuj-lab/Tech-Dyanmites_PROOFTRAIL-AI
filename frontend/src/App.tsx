@@ -1,59 +1,101 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
-import { Home } from './pages/Home';
-import { Workspace } from './pages/Workspace';
-import { EvidenceExplorer } from './pages/EvidenceExplorer';
-import { FinalReport } from './pages/FinalReport';
-import { ResearchHistory } from './pages/ResearchHistory';
-import { Settings } from './pages/Settings';
+import { PublicLanding } from './pages/PublicLanding';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { ResearcherDashboard } from './pages/dashboards/ResearcherDashboard';
+import { ReviewerDashboard } from './pages/dashboards/ReviewerDashboard';
+import { AdminDashboard } from './pages/dashboards/AdminDashboard';
 
-export default function App() {
+function AppContent() {
+  const { user, loading } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [currentTab, setCurrentTab] = useState('Home');
-  const [activeQuestion, setActiveQuestion] = useState<string | undefined>(undefined);
-  const [activeSessionId, setActiveSessionId] = useState<string | undefined>(undefined);
 
-  const handleStartResearch = (question: string) => {
-    setActiveQuestion(question);
-    setCurrentTab('Workspace');
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#090D16] flex items-center justify-center text-xs text-gray-400">
+        Loading ProofTrail AI Engine...
+      </div>
+    );
+  }
 
+  // Public Landing Page if user is not authenticated
+  if (!user) {
+    return (
+      <>
+        <PublicLanding
+          onOpenLogin={() => {
+            setShowSignup(false);
+            setShowLogin(true);
+          }}
+          onOpenSignup={() => {
+            setShowLogin(false);
+            setShowSignup(true);
+          }}
+        />
+
+        {showLogin && (
+          <Login
+            onSuccess={() => setShowLogin(false)}
+            onSwitchToSignup={() => {
+              setShowLogin(false);
+              setShowSignup(true);
+            }}
+          />
+        )}
+
+        {showSignup && (
+          <Signup
+            onSuccess={() => setShowSignup(false)}
+            onSwitchToLogin={() => {
+              setShowSignup(false);
+              setShowLogin(true);
+            }}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Authenticated Dashboard Layout
   const handleNavigateTab = (tab: string, sessionId?: string) => {
-    if (sessionId) {
-      setActiveSessionId(sessionId);
-    }
     setCurrentTab(tab);
   };
 
   return (
     <div className="flex min-h-screen bg-[#090D16] text-gray-100">
-      {/* Sidebar Navigation */}
       <Sidebar currentTab={currentTab} onSelectTab={setCurrentTab} />
 
-      {/* Main Content Workspace */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header currentTab={currentTab} />
 
         <main className="flex-1 p-8 overflow-y-auto">
-          {currentTab === 'Home' && <Home onStartResearch={handleStartResearch} />}
-          {currentTab === 'Workspace' && (
-            <Workspace
-              initialQuestion={activeQuestion}
-              onNavigateTab={handleNavigateTab}
-            />
+          {/* Role-Based Router */}
+          {user.role === 'RESEARCHER' && (
+            <ResearcherDashboard currentSubTab={currentTab} onNavigateTab={handleNavigateTab} />
           )}
-          {currentTab === 'Evidence Explorer' && (
-            <EvidenceExplorer sessionId={activeSessionId} />
+
+          {user.role === 'REVIEWER' && (
+            <ReviewerDashboard currentSubTab={currentTab} />
           )}
-          {currentTab === 'Final Report' && (
-            <FinalReport sessionId={activeSessionId} />
+
+          {user.role === 'ADMIN' && (
+            <AdminDashboard currentSubTab={currentTab} />
           )}
-          {currentTab === 'Research History' && (
-            <ResearchHistory onSelectSession={handleNavigateTab} />
-          )}
-          {currentTab === 'Settings' && <Settings />}
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

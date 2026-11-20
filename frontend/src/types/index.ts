@@ -1,3 +1,15 @@
+export type UserRole = 'RESEARCHER' | 'REVIEWER' | 'ADMIN';
+
+export interface User {
+  user_id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  organization?: string;
+  created_at?: string;
+  status?: string;
+}
+
 export type ResearchStatus =
   | 'PENDING'
   | 'PLANNING'
@@ -44,6 +56,7 @@ export interface ResearchPlan {
 
 export interface ResearchSession {
   session_id: string;
+  user_id?: string;
   question: string;
   created_at: string;
   status: ResearchStatus;
@@ -150,4 +163,46 @@ export interface SystemHealth {
   nebius: { status: string; details: string; model?: string };
   tavily: { status: string; details: string };
   database: { status: string; path: string };
+}
+
+export interface ReviewAssignment {
+  assignment_id: string;
+  session_id: string;
+  assigned_reviewer_id: string;
+  assigned_by_admin_id: string;
+  deadline?: string;
+  status: 'PENDING' | 'IN_REVIEW' | 'COMPLETED' | 'REVISION_REQUESTED' | 'REJECTED';
+  created_at: string;
+  question?: string;
+  researcher_name?: string;
+  reviewer_name?: string;
+  admin_name?: string;
+}
+
+export interface ReviewComment {
+  comment_id: string;
+  assignment_id: string;
+  reviewer_id: string;
+  claim_id?: string;
+  source_id?: string;
+  comment_text: string;
+  created_at: string;
+}
+
+export interface ReviewDecision {
+  decision_id: string;
+  assignment_id: string;
+  reviewer_id: string;
+  decision: 'APPROVED' | 'APPROVED_WITH_OBSERVATIONS' | 'REVISION_REQUIRED' | 'REJECTED';
+  decision_note: string;
+  created_at: string;
+}
+
+export interface AuditLog {
+  log_id: string;
+  actor_user_id?: string;
+  action: string;
+  target_resource: string;
+  details: Record<string, any>;
+  timestamp: string;
 }

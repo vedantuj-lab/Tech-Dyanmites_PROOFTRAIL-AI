@@ -1,12 +1,15 @@
-"""SQLite Database Access Layer."""
+"""SQLite Database Access Layer with Multi-Role RBAC & Audit Logging."""
 import sqlite3
 import json
+import uuid
 import os
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from datetime import datetime, timedelta
 from src.utils.settings import settings
+from src.utils.security import hash_password
 from src.models.research import ResearchSession, ResearchPlan, ResearchEvent, ResearchStatus
-from src.models.source import Source, SourcePassage
+from src.models.source import Source
 from src.models.claim import Claim
 from src.models.evidence import EvidenceRecord, ConflictRecord, ResearchReport
 
@@ -14,9 +17,9 @@ from src.models.evidence import EvidenceRecord, ConflictRecord, ResearchReport
 class Database:
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or settings.database_path
-        # Ensure parent directory exists
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._init_tables()
+        self._seed_bootstrap_users()
 
     def get_connection(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
@@ -27,13 +30,34 @@ class Database:
     def _init_tables(self):
         with self.get_connection() as conn:
             conn.executescript("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                role TEXT NOT NULL, -- RESEARCHER, REVIEWER, ADMIN
+                organization TEXT,
+                created_at TEXT NOT NULL,
+                status TEXT DEFAULT 'ACTIVE' -- ACTIVE, SUSPENDED, INACTIVE
+            );
+
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                session_token TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS research_sessions (
                 session_id TEXT PRIMARY KEY,
+                user_id TEXT,
                 question TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 status TEXT NOT NULL,
                 plan_json TEXT,
-                report_id TEXT
+                report_id TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
             );
 
             CREATE TABLE IF NOT EXISTS research_plans (
@@ -64,16 +88,6 @@ class Database:
                 search_query TEXT,
                 quality_assessment TEXT,
                 quality_explanation TEXT,
-                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
-            );
-
-            CREATE TABLE IF NOT EXISTS source_passages (
-                passage_id TEXT PRIMARY KEY,
-                source_id TEXT NOT NULL,
-                session_id TEXT NOT NULL,
-                exact_passage TEXT NOT NULL,
-                location_context TEXT,
-                FOREIGN KEY (source_id) REFERENCES sources(source_id) ON DELETE CASCADE,
                 FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
             );
 
@@ -135,25 +149,315 @@ class Database:
                 FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS report_shares (
+                share_id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                shared_by_user_id TEXT NOT NULL,
+                shared_with_user_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE,
+                FOREIGN KEY (shared_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                FOREIGN KEY (shared_with_user_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS review_assignments (
+                assignment_id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                assigned_reviewer_id TEXT NOT NULL,
+                assigned_by_admin_id TEXT NOT NULL,
+                deadline TEXT,
+                status TEXT DEFAULT 'PENDING', -- PENDING, IN_REVIEW, COMPLETED, REVISION_REQUESTED
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE,
+                FOREIGN KEY (assigned_reviewer_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS review_comments (
+                comment_id TEXT PRIMARY KEY,
+                assignment_id TEXT NOT NULL,
+                reviewer_id TEXT NOT NULL,
+                claim_id TEXT,
+                source_id TEXT,
+                comment_text TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (assignment_id) REFERENCES review_assignments(assignment_id) ON DELETE CASCADE,
+                FOREIGN KEY (reviewer_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS review_decisions (
+                decision_id TEXT PRIMARY KEY,
+                assignment_id TEXT NOT NULL,
+                reviewer_id TEXT NOT NULL,
+                decision TEXT NOT NULL, -- APPROVED, APPROVED_WITH_OBSERVATIONS, REVISION_REQUIRED, REJECTED
+                decision_note TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (assignment_id) REFERENCES review_assignments(assignment_id) ON DELETE CASCADE,
+                FOREIGN KEY (reviewer_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS research_collections (
+                collection_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS collection_items (
+                item_id TEXT PRIMARY KEY,
+                collection_id TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                added_at TEXT NOT NULL,
+                FOREIGN KEY (collection_id) REFERENCES research_collections(collection_id) ON DELETE CASCADE,
+                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS notifications (
+                notification_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                read INTEGER DEFAULT 0,
+                created_at TEXT NOT NULL,
+                type TEXT DEFAULT 'INFO',
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                log_id TEXT PRIMARY KEY,
+                actor_user_id TEXT,
+                action TEXT NOT NULL,
+                target_resource TEXT NOT NULL,
+                details_json TEXT,
+                timestamp TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS app_settings (
                 setting_key TEXT PRIMARY KEY,
                 setting_value TEXT NOT NULL
             );
             """)
 
-    def save_session(self, session: ResearchSession):
+    def _seed_bootstrap_users(self):
+        """Seeds initial default accounts for Admin, Reviewer, and Researcher."""
+        bootstrap_users = [
+            ("USR_ADMIN_01", "admin@prooftrail.ai", "Admin@123", "ProofTrail Administrator", "ADMIN", "ProofTrail AI Core"),
+            ("USR_REVIEWER_01", "reviewer@prooftrail.ai", "Reviewer@123", "Senior Research Analyst", "REVIEWER", "Global Evidence Review"),
+            ("USR_RESEARCHER_01", "researcher@prooftrail.ai", "Researcher@123", "Lead Researcher", "RESEARCHER", "Market Labs"),
+        ]
+
+        with self.get_connection() as conn:
+            for uid, email, password, name, role, org in bootstrap_users:
+                existing = conn.execute("SELECT user_id FROM users WHERE email = ?;", (email,)).fetchone()
+                if not existing:
+                    pass_hash = hash_password(password)
+                    now_str = datetime.utcnow().isoformat()
+                    conn.execute(
+                        """
+                        INSERT INTO users (user_id, email, password_hash, full_name, role, organization, created_at, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE');
+                        """,
+                        (uid, email, pass_hash, name, role, org, now_str),
+                    )
+
+    # --- USER & AUTHENTICATION OPERATIONS ---
+    def create_user(
+        self, email: str, password_hash: str, full_name: str, role: str = "RESEARCHER", organization: Optional[str] = None
+    ) -> Dict[str, Any]:
+        user_id = f"USR_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO users (user_id, email, password_hash, full_name, role, organization, created_at, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE');
+                """,
+                (user_id, email.lower(), password_hash, full_name, role, organization, now_str),
+            )
+        return self.get_user_by_id(user_id)
+
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            row = conn.execute("SELECT * FROM users WHERE email = ?;", (email.lower(),)).fetchone()
+            return dict(row) if row else None
+
+    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            row = conn.execute("SELECT * FROM users WHERE user_id = ?;", (user_id,)).fetchone()
+            return dict(row) if row else None
+
+    def list_users(self, role_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            if role_filter:
+                rows = conn.execute("SELECT user_id, email, full_name, role, organization, created_at, status FROM users WHERE role = ? ORDER BY created_at DESC;", (role_filter,)).fetchall()
+            else:
+                rows = conn.execute("SELECT user_id, email, full_name, role, organization, created_at, status FROM users ORDER BY created_at DESC;").fetchall()
+            return [dict(r) for r in rows]
+
+    def update_user_status(self, user_id: str, new_status: str, new_role: Optional[str] = None) -> Dict[str, Any]:
+        with self.get_connection() as conn:
+            if new_role:
+                conn.execute("UPDATE users SET status = ?, role = ? WHERE user_id = ?;", (new_status, new_role, user_id))
+            else:
+                conn.execute("UPDATE users SET status = ? WHERE user_id = ?;", (new_status, user_id))
+        return self.get_user_by_id(user_id)
+
+    def create_session_token(self, user_id: str, expires_hours: int = 24) -> str:
+        token = uuid.uuid4().hex
+        now = datetime.utcnow()
+        expires = now + timedelta(hours=expires_hours)
+        with self.get_connection() as conn:
+            conn.execute(
+                "INSERT INTO user_sessions (session_token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?);",
+                (token, user_id, now.isoformat(), expires.isoformat()),
+            )
+        return token
+
+    def get_user_by_session_token(self, token: str) -> Optional[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            row = conn.execute(
+                """
+                SELECT u.user_id, u.email, u.full_name, u.role, u.organization, u.status
+                FROM user_sessions s
+                JOIN users u ON s.user_id = u.user_id
+                WHERE s.session_token = ? AND datetime(s.expires_at) > datetime('now');
+                """,
+                (token,),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def delete_session_token(self, token: str):
+        with self.get_connection() as conn:
+            conn.execute("DELETE FROM user_sessions WHERE session_token = ?;", (token,))
+
+    # --- AUDIT LOGGING ---
+    def log_audit(self, actor_user_id: Optional[str], action: str, target_resource: str, details: Optional[Dict[str, Any]] = None):
+        log_id = f"LOG_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                "INSERT INTO audit_logs (log_id, actor_user_id, action, target_resource, details_json, timestamp) VALUES (?, ?, ?, ?, ?, ?);",
+                (log_id, actor_user_id, action, target_resource, json.dumps(details or {}), now_str),
+            )
+
+    def get_audit_logs(self, limit: int = 50) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute("SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT ?;", (limit,)).fetchall()
+            logs = []
+            for r in rows:
+                item = dict(r)
+                item["details"] = json.loads(item["details_json"]) if item["details_json"] else {}
+                logs.append(item)
+            return logs
+
+    # --- REVIEW ASSIGNMENTS & DECISIONS ---
+    def create_review_assignment(self, session_id: str, reviewer_id: str, admin_id: str, deadline_days: int = 7) -> Dict[str, Any]:
+        assignment_id = f"ASN_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        deadline = (datetime.utcnow() + timedelta(days=deadline_days)).isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO review_assignments (assignment_id, session_id, assigned_reviewer_id, assigned_by_admin_id, deadline, status, created_at)
+                VALUES (?, ?, ?, ?, ?, 'PENDING', ?);
+                """,
+                (assignment_id, session_id, reviewer_id, admin_id, deadline, now_str),
+            )
+        return self.get_review_assignment(assignment_id)
+
+    def get_review_assignment(self, assignment_id: str) -> Optional[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            row = conn.execute("SELECT * FROM review_assignments WHERE assignment_id = ?;", (assignment_id,)).fetchone()
+            return dict(row) if row else None
+
+    def list_reviewer_assignments(self, reviewer_id: str) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT a.*, r.question, u.full_name as researcher_name
+                FROM review_assignments a
+                JOIN research_sessions r ON a.session_id = r.session_id
+                LEFT JOIN users u ON r.user_id = u.user_id
+                WHERE a.assigned_reviewer_id = ?
+                ORDER BY a.created_at DESC;
+                """,
+                (reviewer_id,),
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def list_all_assignments(self) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT a.*, r.question, u1.full_name as reviewer_name, u2.full_name as admin_name
+                FROM review_assignments a
+                JOIN research_sessions r ON a.session_id = r.session_id
+                JOIN users u1 ON a.assigned_reviewer_id = u1.user_id
+                JOIN users u2 ON a.assigned_by_admin_id = u2.user_id
+                ORDER BY a.created_at DESC;
+                """
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def record_review_decision(self, assignment_id: str, reviewer_id: str, decision: str, decision_note: str):
+        decision_id = f"DEC_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO review_decisions (decision_id, assignment_id, reviewer_id, decision, decision_note, created_at)
+                VALUES (?, ?, ?, ?, ?, ?);
+                """,
+                (decision_id, assignment_id, reviewer_id, decision, decision_note, now_str),
+            )
+            # Update assignment status
+            status_map = {
+                "APPROVED": "COMPLETED",
+                "APPROVED_WITH_OBSERVATIONS": "COMPLETED",
+                "REVISION_REQUIRED": "REVISION_REQUESTED",
+                "REJECTED": "REJECTED",
+            }
+            new_status = status_map.get(decision, "COMPLETED")
+            conn.execute("UPDATE review_assignments SET status = ? WHERE assignment_id = ?;", (new_status, assignment_id))
+
+    def add_review_comment(self, assignment_id: str, reviewer_id: str, comment_text: str, claim_id: Optional[str] = None, source_id: Optional[str] = None):
+        comment_id = f"CMT_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO review_comments (comment_id, assignment_id, reviewer_id, claim_id, source_id, comment_text, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                """,
+                (comment_id, assignment_id, reviewer_id, claim_id, source_id, comment_text, now_str),
+            )
+
+    def get_assignment_comments(self, assignment_id: str) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute("SELECT * FROM review_comments WHERE assignment_id = ? ORDER BY created_at ASC;", (assignment_id,)).fetchall()
+            return [dict(row) for row in rows]
+
+    def get_assignment_decisions(self, assignment_id: str) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute("SELECT * FROM review_decisions WHERE assignment_id = ? ORDER BY created_at DESC;", (assignment_id,)).fetchall()
+            return [dict(row) for row in rows]
+
+    # --- RESEARCH SESSIONS & REPORT PERSISTENCE ---
+    def save_session(self, session: ResearchSession, user_id: Optional[str] = None):
         plan_json = session.plan.model_dump_json() if session.plan else None
         with self.get_connection() as conn:
             conn.execute(
                 """
-                INSERT INTO research_sessions (session_id, question, created_at, status, plan_json, report_id)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO research_sessions (session_id, user_id, question, created_at, status, plan_json, report_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(session_id) DO UPDATE SET
+                    user_id=coalesce(excluded.user_id, research_sessions.user_id),
                     status=excluded.status,
                     plan_json=excluded.plan_json,
                     report_id=excluded.report_id;
                 """,
-                (session.session_id, session.question, session.created_at, session.status.value, plan_json, session.report_id),
+                (session.session_id, user_id, session.question, session.created_at, session.status.value, plan_json, session.report_id),
             )
 
     def get_session(self, session_id: str) -> Optional[ResearchSession]:
@@ -171,9 +475,12 @@ class Database:
                 report_id=row["report_id"],
             )
 
-    def list_sessions(self) -> List[ResearchSession]:
+    def list_sessions(self, user_id: Optional[str] = None) -> List[ResearchSession]:
         with self.get_connection() as conn:
-            rows = conn.execute("SELECT * FROM research_sessions ORDER BY created_at DESC;").fetchall()
+            if user_id:
+                rows = conn.execute("SELECT * FROM research_sessions WHERE user_id = ? OR user_id IS NULL ORDER BY created_at DESC;", (user_id,)).fetchall()
+            else:
+                rows = conn.execute("SELECT * FROM research_sessions ORDER BY created_at DESC;").fetchall()
             sessions = []
             for row in rows:
                 plan = ResearchPlan.model_validate_json(row["plan_json"]) if row["plan_json"] else None
