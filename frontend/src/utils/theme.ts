@@ -1,0 +1,133 @@
+export interface FeatureTheme {
+  name: string;
+  badgeBg: string;
+  badgeText: string;
+  border: string;
+  accentText: string;
+  accentBg: string;
+  gradientFrom: string;
+  gradientTo: string;
+}
+
+export const FEATURE_THEMES: Record<string, FeatureTheme> = {
+  Home: {
+    name: 'Home / Overview',
+    badgeBg: 'bg-amber-500/10',
+    badgeText: 'text-amber-400',
+    border: 'border-amber-500/30',
+    accentText: 'text-amber-400',
+    accentBg: 'bg-amber-500',
+    gradientFrom: 'from-amber-600',
+    gradientTo: 'to-amber-400',
+  },
+  'New Research': {
+    name: 'New Research & Planning',
+    badgeBg: 'bg-emerald-500/10',
+    badgeText: 'text-emerald-400',
+    border: 'border-emerald-500/30',
+    accentText: 'text-emerald-400',
+    accentBg: 'bg-emerald-500',
+    gradientFrom: 'from-emerald-600',
+    gradientTo: 'to-emerald-400',
+  },
+  Workspace: {
+    name: 'Research Workspace',
+    badgeBg: 'bg-teal-500/10',
+    badgeText: 'text-teal-400',
+    border: 'border-teal-500/30',
+    accentText: 'text-teal-400',
+    accentBg: 'bg-teal-500',
+    gradientFrom: 'from-teal-600',
+    gradientTo: 'to-teal-400',
+  },
+  'Website Importer': {
+    name: 'Website Importer',
+    badgeBg: 'bg-orange-500/10',
+    badgeText: 'text-orange-400',
+    border: 'border-orange-500/30',
+    accentText: 'text-orange-400',
+    accentBg: 'bg-orange-500',
+    gradientFrom: 'from-orange-600',
+    gradientTo: 'to-orange-400',
+  },
+  'Document Library': {
+    name: 'Document Intelligence',
+    badgeBg: 'bg-violet-500/10',
+    badgeText: 'text-violet-400',
+    border: 'border-violet-500/30',
+    accentText: 'text-violet-400',
+    accentBg: 'bg-violet-500',
+    gradientFrom: 'from-violet-600',
+    gradientTo: 'to-violet-400',
+  },
+  'Evidence Explorer': {
+    name: 'Evidence Explorer',
+    badgeBg: 'bg-emerald-400/10',
+    badgeText: 'text-emerald-300',
+    border: 'border-emerald-400/30',
+    accentText: 'text-emerald-300',
+    accentBg: 'bg-emerald-400',
+    gradientFrom: 'from-emerald-500',
+    gradientTo: 'to-emerald-300',
+  },
+  'Evidence Map': {
+    name: 'Evidence Map',
+    badgeBg: 'bg-rose-500/10',
+    badgeText: 'text-rose-400',
+    border: 'border-rose-500/30',
+    accentText: 'text-rose-400',
+    accentBg: 'bg-rose-500',
+    gradientFrom: 'from-rose-600',
+    gradientTo: 'to-rose-400',
+  },
+  'Decision Briefs': {
+    name: 'Decision Intelligence',
+    badgeBg: 'bg-amber-600/10',
+    badgeText: 'text-amber-500',
+    border: 'border-amber-600/30',
+    accentText: 'text-amber-500',
+    accentBg: 'bg-amber-600',
+    gradientFrom: 'from-amber-700',
+    gradientTo: 'to-amber-500',
+  },
+  'Final Report': {
+    name: 'Final Report & Exports',
+    badgeBg: 'bg-slate-500/10',
+    badgeText: 'text-slate-300',
+    border: 'border-slate-500/30',
+    accentText: 'text-slate-300',
+    accentBg: 'bg-slate-500',
+    gradientFrom: 'from-slate-600',
+    gradientTo: 'to-slate-400',
+  },
+  'Research History': {
+    name: 'Research History',
+    badgeBg: 'bg-indigo-500/10',
+    badgeText: 'text-indigo-400',
+    border: 'border-indigo-500/30',
+    accentText: 'text-indigo-400',
+    accentBg: 'bg-indigo-500',
+    gradientFrom: 'from-indigo-600',
+    gradientTo: 'to-indigo-400',
+  },
+  Reviewer: {
+    name: 'Analyst & Reviewer Hub',
+    badgeBg: 'bg-pink-500/10',
+    badgeText: 'text-pink-400',
+    border: 'border-pink-500/30',
+    accentText: 'text-pink-400',
+    accentBg: 'bg-pink-500',
+    gradientFrom: 'from-pink-600',
+    gradientTo: 'to-pink-400',
+  },
+  Admin: {
+    name: 'Administrator Control Hub',
+    badgeBg: 'bg-sky-500/10',
+    badgeText: 'text-sky-400',
+    border: 'border-sky-500/30',
+    accentText: 'text-sky-400',
+    accentBg: 'bg-sky-500',
+    gradientFrom: 'from-sky-600',
+    gradientTo: 'to-sky-400',
+  },
+};

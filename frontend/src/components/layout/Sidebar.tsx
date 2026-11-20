@@ -15,9 +15,17 @@ import {
   Network,
   Sliders,
   Settings as SettingsIcon,
+  AlertTriangle,
+  Award,
+  FolderKanban,
+  Eye,
+  CheckSquare,
+  Users,
+  Lock,
 } from 'lucide-react';
 import { fetchHealthStatus } from '../../services/api';
 import { SystemHealth } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   currentTab: string;
@@ -25,6 +33,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => {
+  const { user } = useAuth();
   const [health, setHealth] = useState<SystemHealth | null>(null);
 
   useEffect(() => {
@@ -33,18 +42,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       .catch(() => null);
   }, []);
 
-  const navItems = [
-    { id: 'Home', label: 'Home Workspace', icon: Home },
-    { id: 'Workspace', label: 'Research Workspace', icon: Compass },
-    { id: 'Website Importer', label: 'Website Importer', icon: Globe },
-    { id: 'Document Library', label: 'Document Library', icon: Upload },
-    { id: 'Evidence Explorer', label: 'Evidence Explorer', icon: ShieldCheck },
-    { id: 'Evidence Map', label: 'Evidence Map', icon: Network },
-    { id: 'Final Report', label: 'Final Report', icon: FileText },
-    { id: 'Decision Briefs', label: 'Decision Briefs', icon: Sliders },
-    { id: 'Research History', label: 'Research History', icon: History },
-    { id: 'Settings', label: 'Settings', icon: SettingsIcon },
+  // Role-Based Navigation Items Setup
+  const researcherItems = [
+    { id: 'Home', label: 'Overview', icon: Home, themeColor: 'text-amber-400' },
+    { id: 'Workspace', label: 'Research Workspace', icon: Compass, themeColor: 'text-teal-400' },
+    { id: 'Website Importer', label: 'Website Importer', icon: Globe, themeColor: 'text-orange-400' },
+    { id: 'Document Library', label: 'Document Library', icon: Upload, themeColor: 'text-violet-400' },
+    { id: 'Evidence Explorer', label: 'Evidence Explorer', icon: ShieldCheck, themeColor: 'text-emerald-400' },
+    { id: 'Evidence Map', label: 'Evidence Map', icon: Network, themeColor: 'text-rose-400' },
+    { id: 'Decision Briefs', label: 'Decision Intelligence', icon: Sliders, themeColor: 'text-amber-500' },
+    { id: 'Final Report', label: 'My Reports', icon: FileText, themeColor: 'text-slate-300' },
+    { id: 'Research History', label: 'Research History', icon: History, themeColor: 'text-indigo-400' },
+    { id: 'Settings', label: 'Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
   ];
+
+  const reviewerItems = [
+    { id: 'Overview', label: 'Assigned Overview', icon: Home, themeColor: 'text-pink-400' },
+    { id: 'Assigned Reviews', label: 'Assigned Reviews', icon: CheckSquare, themeColor: 'text-pink-400' },
+    { id: 'Evidence Validation', label: 'Evidence Validation', icon: ShieldCheck, themeColor: 'text-emerald-400' },
+    { id: 'Review History', label: 'Review History', icon: History, themeColor: 'text-indigo-400' },
+    { id: 'Settings', label: 'Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
+  ];
+
+  const adminItems = [
+    { id: 'Overview', label: 'Platform Overview', icon: Home, themeColor: 'text-sky-400' },
+    { id: 'User Management', label: 'User Management', icon: Users, themeColor: 'text-sky-400' },
+    { id: 'Review Assignments', label: 'Review Assignments', icon: CheckSquare, themeColor: 'text-emerald-400' },
+    { id: 'Audit Logs', label: 'Security Audit Logs', icon: Lock, themeColor: 'text-rose-400' },
+    { id: 'Settings', label: 'Platform Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
+  ];
+
+  const navItems = user?.role === 'ADMIN' ? adminItems : user?.role === 'REVIEWER' ? reviewerItems : researcherItems;
 
   return (
     <aside className="w-64 bg-[#0F172A] border-r border-[#2A364F] flex flex-col justify-between h-screen sticky top-0 z-40 select-none">
@@ -81,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
                     : 'text-gray-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-gray-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? item.themeColor : 'text-gray-400'}`} />
                 <span>{item.label}</span>
               </button>
             );
