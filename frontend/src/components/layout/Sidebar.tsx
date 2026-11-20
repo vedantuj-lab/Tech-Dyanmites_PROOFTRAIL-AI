@@ -15,10 +15,6 @@ import {
   Network,
   Sliders,
   Settings as SettingsIcon,
-  AlertTriangle,
-  Award,
-  FolderKanban,
-  Eye,
   CheckSquare,
   Users,
   Lock,
@@ -42,7 +38,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       .catch(() => null);
   }, []);
 
-  // Role-Based Navigation Items Setup
   const researcherItems = [
     { id: 'Home', label: 'Overview', icon: Home, themeColor: 'text-amber-400' },
     { id: 'Workspace', label: 'Research Workspace', icon: Compass, themeColor: 'text-teal-400' },
@@ -72,13 +67,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
     { id: 'Settings', label: 'Platform Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
   ];
 
-  const navItems = user?.role === 'ADMIN' ? adminItems : user?.role === 'REVIEWER' ? reviewerItems : researcherItems;
+  const isReviewer = user?.role === 'REVIEWER';
+  const isAdmin = user?.role === 'ADMIN';
+
+  // Role-based sidebar backgrounds & borders
+  const sidebarClass = isAdmin
+    ? 'bg-[#0F172A] border-[#2A364F]'
+    : isReviewer
+    ? 'bg-[#4C0519] border-rose-900/60'
+    : 'bg-[#022C22] border-emerald-900/60';
+
+  const brandColor = isAdmin
+    ? 'text-sky-400'
+    : isReviewer
+    ? 'text-pink-400'
+    : 'text-emerald-400';
+
+  const navItems = isAdmin ? adminItems : isReviewer ? reviewerItems : researcherItems;
 
   return (
-    <aside className="w-64 bg-[#0F172A] border-r border-[#2A364F] flex flex-col justify-between h-screen sticky top-0 z-40 select-none">
+    <aside className={`w-64 border-r flex flex-col justify-between h-screen sticky top-0 z-40 select-none ${sidebarClass}`}>
       <div>
         {/* Brand Header */}
-        <div className="p-5 border-b border-[#2A364F]">
+        <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20">
               <Sparkles className="w-5 h-5 text-black font-bold" />
@@ -87,8 +98,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
               <div className="font-extrabold text-lg text-white tracking-tight leading-none">
                 ProofTrail AI
               </div>
-              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-wider mt-1">
-                Evidence Intelligence
+              <div className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${brandColor}`}>
+                {user?.role || 'RESEACHER'} WORKSPACE
               </div>
             </div>
           </div>
@@ -105,11 +116,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
                 onClick={() => onSelectTab(item.id)}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
                   isActive
-                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-sm'
-                    : 'text-gray-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-white/10 text-white border border-white/20 shadow-sm'
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? item.themeColor : 'text-gray-400'}`} />
+                <Icon className={`w-4 h-4 ${item.themeColor}`} />
                 <span>{item.label}</span>
               </button>
             );
@@ -118,22 +129,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       </div>
 
       {/* System Integration Status Footer */}
-      <div className="p-4 border-t border-[#2A364F] bg-[#090D16]/50">
-        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+      <div className="p-4 border-t border-white/10 bg-black/20">
+        <div className="text-[10px] font-bold text-gray-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
           <Layers className="w-3 h-3 text-amber-400" />
           <span>System Status</span>
         </div>
 
         <div className="space-y-2 text-xs">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 flex items-center gap-1.5 text-[11px]">
-              <Cpu className="w-3 h-3 text-gray-500" /> Nebius LLM:
+            <span className="text-gray-300 flex items-center gap-1.5 text-[11px]">
+              <Cpu className="w-3 h-3 text-gray-400" /> Nebius LLM:
             </span>
             <span
               className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                 health?.nebius.status === 'CONNECTED'
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
               }`}
             >
               {health?.nebius.status || 'CHECKING'}
@@ -141,14 +152,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 flex items-center gap-1.5 text-[11px]">
-              <Search className="w-3 h-3 text-gray-500" /> Tavily Search:
+            <span className="text-gray-300 flex items-center gap-1.5 text-[11px]">
+              <Search className="w-3 h-3 text-gray-400" /> Tavily Search:
             </span>
             <span
               className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                 health?.tavily.status === 'CONNECTED'
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
               }`}
             >
               {health?.tavily.status || 'CHECKING'}
@@ -156,16 +167,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 flex items-center gap-1.5 text-[11px]">
-              <Database className="w-3 h-3 text-gray-500" /> SQLite DB:
+            <span className="text-gray-300 flex items-center gap-1.5 text-[11px]">
+              <Database className="w-3 h-3 text-gray-400" /> SQLite DB:
             </span>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30">
+            <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">
               READY
             </span>
           </div>
         </div>
 
-        <div className="mt-3 pt-2 border-t border-[#2A364F]/50 text-[10px] text-gray-500 text-center">
+        <div className="mt-3 pt-2 border-t border-white/10 text-[10px] text-gray-400 text-center">
           ProofTrail AI v1.0.0
         </div>
       </div>
