@@ -6,6 +6,7 @@ import { Workspace } from './pages/Workspace';
 import { EvidenceExplorer } from './pages/EvidenceExplorer';
 import { FinalReport } from './pages/FinalReport';
 import { ResearchHistory } from './pages/ResearchHistory';
+import { Settings } from './pages/Settings';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('Home');
@@ -50,6 +51,7 @@ export default function App() {
           {currentTab === 'Research History' && (
             <ResearchHistory onSelectSession={handleNavigateTab} />
           )}
+          {currentTab === 'Settings' && <Settings />}
         </main>
       </div>
     </div>

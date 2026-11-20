@@ -10,6 +10,7 @@ import {
   Database,
   Layers,
   Sparkles,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import { fetchHealthStatus } from '../../services/api';
 import { SystemHealth } from '../../types';
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
     { id: 'Evidence Explorer', label: 'Evidence Explorer', icon: ShieldCheck },
     { id: 'Final Report', label: 'Final Report', icon: FileText },
     { id: 'Research History', label: 'Research History', icon: History },
+    { id: 'Settings', label: 'Settings', icon: SettingsIcon },
   ];
 
   return (
