@@ -273,6 +273,12 @@ class Database:
             );
             """)
 
+            # Safeguard migration for existing DB files
+            try:
+                conn.execute("ALTER TABLE research_sessions ADD COLUMN user_id TEXT;")
+            except Exception:
+                pass
+
     def _seed_bootstrap_users(self):
         bootstrap_users = [
             ("USR_ADMIN_01", "admin@prooftrail.ai", "Admin@123", "ProofTrail Administrator", "ADMIN", "ProofTrail AI Core"),
