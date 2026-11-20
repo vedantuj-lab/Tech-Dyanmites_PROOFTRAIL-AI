@@ -1,8 +1,8 @@
-"""FastAPI REST API Server with Multi-Role RBAC & Audit Logging for ProofTrail AI."""
+"""FastAPI REST API Server with Multi-Role RBAC, Website/Document Import, & Decision Intelligence."""
 import os
 import uuid
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Header, Depends, status
+from fastapi import FastAPI, HTTPException, Header, Depends, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +12,9 @@ from src.agent_core.orchestrator import ResearchOrchestrator
 from src.database.db import get_db, Database
 from src.services.nebius import NebiusService
 from src.services.tavily import TavilyService
+from src.services.website_importer import WebsiteImporter
+from src.services.document_parser import DocumentParser
+from src.services.decision_intelligence import DecisionIntelligenceEngine
 from src.utils.settings import settings
 from src.utils.security import (
     hash_password,
@@ -24,7 +27,7 @@ from src.utils.pdf_export import generate_pdf_report
 
 app = FastAPI(
     title="ProofTrail AI API",
-    description="Multi-Role Evidence Intelligence Engine REST API",
+    description="Multi-Role Evidence & Decision Intelligence Engine REST API",
     version="1.0.0",
 )
 
@@ -55,6 +58,11 @@ class ResearchRequest(BaseModel):
     session_id: Optional[str] = None
 
 
+class WebsiteImportRequest(BaseModel):
+    session_id: str
+    url: str
+
+
 class AssignReviewerRequest(BaseModel):
     session_id: str
     reviewer_id: str
@@ -62,7 +70,7 @@ class AssignReviewerRequest(BaseModel):
 
 
 class ReviewDecisionRequest(BaseModel):
-    decision: str = Field(..., description="APPROVED, APPROVED_WITH_OBSERVATIONS, REVISION_REQUIRED, REJECTED")
+    decision: str
     decision_note: str
 
 
@@ -73,21 +81,19 @@ class ReviewCommentRequest(BaseModel):
 
 
 class UserUpdateStatusRequest(BaseModel):
-    status: str  # ACTIVE, SUSPENDED, INACTIVE
-    role: Optional[str] = None  # RESEARCHER, REVIEWER, ADMIN
+    status: str
+    role: Optional[str] = None
 
 
-# --- DEPENDENCY: AUTHENTICATION & RBAC ---
+# --- DEPENDENCIES ---
 def get_current_user(authorization: Optional[str] = Header(None)) -> Optional[Dict[str, Any]]:
     if not authorization:
         return None
     token = authorization.replace("Bearer ", "").strip()
     db = get_db()
-    # Check session token
     user = db.get_user_by_session_token(token)
     if user:
         return user
-    # Check JWT token
     payload = decode_auth_token(token)
     if payload and "user_id" in payload:
         return db.get_user_by_id(payload["user_id"])
@@ -96,15 +102,9 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> Optional[Di
 
 def require_auth(user: Optional[Dict[str, Any]] = Depends(get_current_user)) -> Dict[str, Any]:
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required. Please sign in.",
-        )
+        raise HTTPException(status_code=401, detail="Authentication required. Please sign in.")
     if user.get("status") != "ACTIVE":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated or suspended.",
-        )
+        raise HTTPException(status_code=403, detail="Account is deactivated or suspended.")
     return user
 
 
@@ -112,14 +112,14 @@ def require_role(permitted_roles: List[str]):
     def role_checker(user: Dict[str, Any] = Depends(require_auth)) -> Dict[str, Any]:
         if user["role"] not in permitted_roles:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=403,
                 detail=f"Access denied. Required role: {', '.join(permitted_roles)}.",
             )
         return user
     return role_checker
 
 
-# --- PUBLIC & SYSTEM HEALTH ENDPOINTS ---
+# --- PUBLIC & HEALTH ENDPOINTS ---
 @app.get("/api/health")
 def get_health_status():
     n_service = NebiusService()
@@ -138,7 +138,7 @@ def get_health_status():
     }
 
 
-# --- AUTHENTICATION API ROUTER ---
+# --- AUTHENTICATION ENDPOINTS ---
 @app.post("/api/auth/register")
 def register_user(req: RegisterRequest):
     db = get_db()
@@ -151,7 +151,7 @@ def register_user(req: RegisterRequest):
         email=req.email,
         password_hash=pass_hash,
         full_name=req.full_name,
-        role="RESEARCHER",  # Default public registration is always RESEARCHER
+        role="RESEARCHER",
         organization=req.organization,
     )
 
@@ -197,6 +197,138 @@ def logout_user(authorization: Optional[str] = Header(None)):
         db = get_db()
         db.delete_session_token(token)
     return {"status": "LOGGED_OUT"}
+
+
+# --- WEBSITE IMPORTER & DOCUMENT INTELLIGENCE ---
+@app.post("/api/import/website")
+def import_website(req: WebsiteImportRequest, user: Optional[Dict[str, Any]] = Depends(get_current_user)):
+    db = get_db()
+    importer = WebsiteImporter()
+    user_id = user["user_id"] if user else None
+
+    try:
+        result = importer.import_single_page(req.session_id, req.url)
+        source = result["source"]
+        db.save_sources([source])
+        db.save_imported_website(
+            session_id=req.session_id,
+            user_id=user_id,
+            url=source.url,
+            canonical_url=source.canonical_url,
+            title=source.title,
+            domain=source.domain,
+            content=source.content,
+        )
+        if user_id:
+            db.log_audit(user_id, "WEBSITE_IMPORTED", f"url:{req.url}", {"session_id": req.session_id})
+        return {"status": "SUCCESS", "source": source.model_dump()}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/documents")
+async def upload_document(
+    session_id: str = Form(...),
+    file: UploadFile = File(...),
+    user: Optional[Dict[str, Any]] = Depends(get_current_user),
+):
+    db = get_db()
+    parser = DocumentParser()
+    user_id = user["user_id"] if user else None
+
+    file_bytes = await file.read()
+    result = parser.parse_document(session_id, file.filename, file_bytes, file.content_type or "")
+    source = result["source"]
+
+    db.save_sources([source])
+    db.save_uploaded_document(
+        session_id=session_id,
+        user_id=user_id,
+        filename=file.filename,
+        file_type=file.content_type or "unknown",
+        file_size=len(file_bytes),
+        extracted_text=result["extracted_text"],
+    )
+
+    if user_id:
+        db.log_audit(user_id, "DOCUMENT_UPLOADED", f"file:{file.filename}", {"session_id": session_id})
+
+    return {"status": "SUCCESS", "source": source.model_dump()}
+
+
+# --- DECISION INTELLIGENCE & EVIDENCE MAP ---
+@app.post("/api/decision-briefs/{session_id}")
+def generate_decision_brief(session_id: str):
+    db = get_db()
+    report = db.get_report_by_session(session_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found for session.")
+
+    nebius = NebiusService()
+    engine = DecisionIntelligenceEngine(nebius)
+    brief_dict = engine.generate_decision_brief(report)
+    saved = db.save_decision_brief(session_id, report.question, brief_dict)
+    return saved
+
+
+@app.get("/api/decision-briefs/{session_id}")
+def get_decision_brief(session_id: str):
+    db = get_db()
+    brief = db.get_decision_brief(session_id)
+    if not brief:
+        # Generate on the fly if report exists
+        report = db.get_report_by_session(session_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Decision brief or report not found.")
+        nebius = NebiusService()
+        engine = DecisionIntelligenceEngine(nebius)
+        brief_dict = engine.generate_decision_brief(report)
+        return db.save_decision_brief(session_id, report.question, brief_dict)
+    return brief
+
+
+@app.get("/api/evidence-map/{session_id}")
+def get_evidence_map(session_id: str):
+    db = get_db()
+    session = db.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    claims = db.get_claims(session_id)
+    evidence = db.get_evidence_records(session_id)
+    sources = db.get_sources(session_id)
+
+    tree = {
+        "question": session.question,
+        "subquestions": session.plan.subquestions if session.plan else [],
+        "claims": [
+            {
+                "claim_id": c.claim_id,
+                "claim_text": c.claim_text,
+                "verification_status": c.verification_status.value,
+                "evidence_passages": [
+                    {
+                        "source_id": ev.source_id,
+                        "passage": ev.exact_passage,
+                        "relationship": ev.relationship.value,
+                    }
+                    for ev in evidence
+                    if ev.claim_id == c.claim_id
+                ],
+            }
+            for c in claims
+        ],
+        "sources": [
+            {
+                "source_id": s.source_id,
+                "title": s.title,
+                "domain": s.domain,
+                "quality": s.quality_assessment.value,
+            }
+            for s in sources
+        ],
+    }
+    return tree
 
 
 # --- RESEARCHER ENDPOINTS ---

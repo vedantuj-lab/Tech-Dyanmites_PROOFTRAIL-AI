@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Home } from '../Home';
 import { Workspace } from '../Workspace';
+import { WebsiteImporter } from '../WebsiteImporter';
+import { DocumentLibrary } from '../DocumentLibrary';
 import { EvidenceExplorer } from '../EvidenceExplorer';
+import { EvidenceMap } from '../EvidenceMap';
 import { FinalReport } from '../FinalReport';
+import { DecisionBriefs } from '../DecisionBriefs';
 import { ResearchHistory } from '../ResearchHistory';
 import { Settings } from '../Settings';
 
@@ -31,8 +35,12 @@ export const ResearcherDashboard: React.FC<ResearcherDashboardProps> = ({ curren
       {currentSubTab === 'Workspace' && (
         <Workspace initialQuestion={activeQuestion} onNavigateTab={handleSelectSession} />
       )}
+      {currentSubTab === 'Website Importer' && <WebsiteImporter sessionId={activeSessionId} />}
+      {currentSubTab === 'Document Library' && <DocumentLibrary sessionId={activeSessionId} />}
       {currentSubTab === 'Evidence Explorer' && <EvidenceExplorer sessionId={activeSessionId} />}
+      {currentSubTab === 'Evidence Map' && <EvidenceMap sessionId={activeSessionId} />}
       {currentSubTab === 'Final Report' && <FinalReport sessionId={activeSessionId} />}
+      {currentSubTab === 'Decision Briefs' && <DecisionBriefs sessionId={activeSessionId} />}
       {currentSubTab === 'Research History' && <ResearchHistory onSelectSession={handleSelectSession} />}
       {currentSubTab === 'Settings' && <Settings />}
     </>

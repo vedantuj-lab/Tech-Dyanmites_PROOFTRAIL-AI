@@ -1,4 +1,4 @@
-"""SQLite Database Access Layer with Multi-Role RBAC & Audit Logging."""
+"""SQLite Database Access Layer with Multi-Role RBAC, Document/Website Import, & Decision Intelligence."""
 import sqlite3
 import json
 import uuid
@@ -91,6 +91,41 @@ class Database:
                 FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS imported_websites (
+                import_id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                user_id TEXT,
+                url TEXT NOT NULL,
+                canonical_url TEXT NOT NULL,
+                title TEXT,
+                domain TEXT,
+                content TEXT NOT NULL,
+                retrieved_at TEXT NOT NULL,
+                status TEXT DEFAULT 'COMPLETED',
+                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS uploaded_documents (
+                document_id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                user_id TEXT,
+                filename TEXT NOT NULL,
+                file_type TEXT NOT NULL,
+                file_size INTEGER NOT NULL,
+                extracted_text TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS decision_briefs (
+                brief_id TEXT PRIMARY KEY,
+                session_id TEXT UNIQUE NOT NULL,
+                question TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                brief_json TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS claims (
                 claim_id TEXT PRIMARY KEY,
                 session_id TEXT NOT NULL,
@@ -112,7 +147,6 @@ class Database:
                 relevance_explanation TEXT NOT NULL,
                 source_location TEXT,
                 FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE,
-                FOREIGN KEY (source_id) REFERENCES sources(source_id) ON DELETE CASCADE,
                 FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE
             );
 
@@ -166,7 +200,7 @@ class Database:
                 assigned_reviewer_id TEXT NOT NULL,
                 assigned_by_admin_id TEXT NOT NULL,
                 deadline TEXT,
-                status TEXT DEFAULT 'PENDING', -- PENDING, IN_REVIEW, COMPLETED, REVISION_REQUESTED
+                status TEXT DEFAULT 'PENDING',
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (session_id) REFERENCES research_sessions(session_id) ON DELETE CASCADE,
                 FOREIGN KEY (assigned_reviewer_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -188,7 +222,7 @@ class Database:
                 decision_id TEXT PRIMARY KEY,
                 assignment_id TEXT NOT NULL,
                 reviewer_id TEXT NOT NULL,
-                decision TEXT NOT NULL, -- APPROVED, APPROVED_WITH_OBSERVATIONS, REVISION_REQUIRED, REJECTED
+                decision TEXT NOT NULL,
                 decision_note TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (assignment_id) REFERENCES review_assignments(assignment_id) ON DELETE CASCADE,
@@ -240,7 +274,6 @@ class Database:
             """)
 
     def _seed_bootstrap_users(self):
-        """Seeds initial default accounts for Admin, Reviewer, and Researcher."""
         bootstrap_users = [
             ("USR_ADMIN_01", "admin@prooftrail.ai", "Admin@123", "ProofTrail Administrator", "ADMIN", "ProofTrail AI Core"),
             ("USR_REVIEWER_01", "reviewer@prooftrail.ai", "Reviewer@123", "Senior Research Analyst", "REVIEWER", "Global Evidence Review"),
@@ -260,6 +293,67 @@ class Database:
                         """,
                         (uid, email, pass_hash, name, role, org, now_str),
                     )
+
+    # --- WEBSITE & DOCUMENT IMPORTS ---
+    def save_imported_website(self, session_id: str, user_id: Optional[str], url: str, canonical_url: str, title: str, domain: str, content: str) -> Dict[str, Any]:
+        import_id = f"IMP_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO imported_websites (import_id, session_id, user_id, url, canonical_url, title, domain, content, retrieved_at, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED');
+                """,
+                (import_id, session_id, user_id, url, canonical_url, title, domain, content, now_str),
+            )
+        return {"import_id": import_id, "url": url, "title": title, "domain": domain}
+
+    def list_imported_websites(self, session_id: str) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute("SELECT * FROM imported_websites WHERE session_id = ?;", (session_id,)).fetchall()
+            return [dict(r) for r in rows]
+
+    def save_uploaded_document(self, session_id: str, user_id: Optional[str], filename: str, file_type: str, file_size: int, extracted_text: str) -> Dict[str, Any]:
+        doc_id = f"DOC_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO uploaded_documents (document_id, session_id, user_id, filename, file_type, file_size, extracted_text, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (doc_id, session_id, user_id, filename, file_type, file_size, extracted_text, now_str),
+            )
+        return {"document_id": doc_id, "filename": filename, "file_type": file_type, "file_size": file_size}
+
+    def list_uploaded_documents(self, session_id: str) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            rows = conn.execute("SELECT * FROM uploaded_documents WHERE session_id = ?;", (session_id,)).fetchall()
+            return [dict(r) for r in rows]
+
+    # --- DECISION BRIEFS ---
+    def save_decision_brief(self, session_id: str, question: str, brief_dict: Dict[str, Any]) -> Dict[str, Any]:
+        brief_id = f"DBF_{uuid.uuid4().hex[:8]}"
+        now_str = datetime.utcnow().isoformat()
+        with self.get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO decision_briefs (brief_id, session_id, question, created_at, brief_json)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(session_id) DO UPDATE SET brief_json=excluded.brief_json;
+                """,
+                (brief_id, session_id, question, now_str, json.dumps(brief_dict)),
+            )
+        return {"brief_id": brief_id, "session_id": session_id, "created_at": now_str, "brief": brief_dict}
+
+    def get_decision_brief(self, session_id: str) -> Optional[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            row = conn.execute("SELECT * FROM decision_briefs WHERE session_id = ?;", (session_id,)).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            res["brief"] = json.loads(res["brief_json"])
+            return res
 
     # --- USER & AUTHENTICATION OPERATIONS ---
     def create_user(
@@ -411,7 +505,6 @@ class Database:
                 """,
                 (decision_id, assignment_id, reviewer_id, decision, decision_note, now_str),
             )
-            # Update assignment status
             status_map = {
                 "APPROVED": "COMPLETED",
                 "APPROVED_WITH_OBSERVATIONS": "COMPLETED",

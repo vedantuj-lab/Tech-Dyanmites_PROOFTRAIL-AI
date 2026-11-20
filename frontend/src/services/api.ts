@@ -128,6 +128,46 @@ export function getPdfExportUrl(sessionId: string): string {
   return `${API_BASE}/research/${sessionId}/export/pdf`;
 }
 
+// --- IMPORTER & DOCUMENT INTELLIGENCE ---
+export async function importWebsiteApi(sessionId: string, url: string): Promise<{ status: string; source: Source }> {
+  const res = await fetch(`${API_BASE}/import/website`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+    body: JSON.stringify({ session_id: sessionId, url }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Import failed' }));
+    throw new Error(err.detail || 'Import failed');
+  }
+  return res.json();
+}
+
+export async function uploadDocumentApi(sessionId: string, file: File): Promise<{ status: string; source: Source }> {
+  const formData = new FormData();
+  formData.append('session_id', sessionId);
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/documents`, {
+    method: 'POST',
+    headers: getAuthHeader(),
+    body: formData,
+  });
+  if (!res.ok) throw new Error('Failed to upload document');
+  return res.json();
+}
+
+export async function fetchDecisionBrief(sessionId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/decision-briefs/${sessionId}`, { headers: getAuthHeader() });
+  if (!res.ok) throw new Error('Failed to fetch decision brief');
+  return res.json();
+}
+
+export async function fetchEvidenceMap(sessionId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/evidence-map/${sessionId}`, { headers: getAuthHeader() });
+  if (!res.ok) throw new Error('Failed to fetch evidence map');
+  return res.json();
+}
+
 // --- REVIEWER API METHODS ---
 export async function fetchReviewerDashboard(): Promise<any> {
   const res = await fetch(`${API_BASE}/reviewer/dashboard`, { headers: getAuthHeader() });

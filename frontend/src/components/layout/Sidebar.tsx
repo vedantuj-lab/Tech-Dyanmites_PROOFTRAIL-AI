@@ -10,6 +10,10 @@ import {
   Database,
   Layers,
   Sparkles,
+  Globe,
+  Upload,
+  Network,
+  Sliders,
   Settings as SettingsIcon,
 } from 'lucide-react';
 import { fetchHealthStatus } from '../../services/api';
@@ -32,8 +36,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
   const navItems = [
     { id: 'Home', label: 'Home Workspace', icon: Home },
     { id: 'Workspace', label: 'Research Workspace', icon: Compass },
+    { id: 'Website Importer', label: 'Website Importer', icon: Globe },
+    { id: 'Document Library', label: 'Document Library', icon: Upload },
     { id: 'Evidence Explorer', label: 'Evidence Explorer', icon: ShieldCheck },
+    { id: 'Evidence Map', label: 'Evidence Map', icon: Network },
     { id: 'Final Report', label: 'Final Report', icon: FileText },
+    { id: 'Decision Briefs', label: 'Decision Briefs', icon: Sliders },
     { id: 'Research History', label: 'Research History', icon: History },
     { id: 'Settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -59,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
         </div>
 
         {/* Navigation Menu */}
-        <nav className="p-3 space-y-1 mt-2">
+        <nav className="p-3 space-y-1 mt-2 max-h-[calc(100vh-250px)] overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
