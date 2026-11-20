@@ -22,6 +22,7 @@ import {
 import { fetchHealthStatus } from '../../services/api';
 import { SystemHealth } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { getFeatureTheme } from '../../utils/theme';
 
 interface SidebarProps {
   currentTab: string;
@@ -39,38 +40,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
   }, []);
 
   const researcherItems = [
-    { id: 'Home', label: 'Overview', icon: Home, themeColor: 'text-amber-400' },
-    { id: 'Workspace', label: 'Research Workspace', icon: Compass, themeColor: 'text-teal-400' },
-    { id: 'Website Importer', label: 'Website Importer', icon: Globe, themeColor: 'text-orange-400' },
-    { id: 'Document Library', label: 'Document Library', icon: Upload, themeColor: 'text-violet-400' },
-    { id: 'Evidence Explorer', label: 'Evidence Explorer', icon: ShieldCheck, themeColor: 'text-emerald-400' },
-    { id: 'Evidence Map', label: 'Evidence Map', icon: Network, themeColor: 'text-rose-400' },
-    { id: 'Decision Briefs', label: 'Decision Intelligence', icon: Sliders, themeColor: 'text-amber-500' },
-    { id: 'Final Report', label: 'My Reports', icon: FileText, themeColor: 'text-slate-300' },
-    { id: 'Research History', label: 'Research History', icon: History, themeColor: 'text-indigo-400' },
-    { id: 'Settings', label: 'Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
+    { id: 'Home', label: 'Overview', icon: Home },
+    { id: 'Workspace', label: 'Research Workspace', icon: Compass },
+    { id: 'Website Importer', label: 'Website Importer', icon: Globe },
+    { id: 'Document Library', label: 'Document Library', icon: Upload },
+    { id: 'Evidence Explorer', label: 'Evidence Explorer', icon: ShieldCheck },
+    { id: 'Evidence Map', label: 'Evidence Map', icon: Network },
+    { id: 'Decision Briefs', label: 'Decision Intelligence', icon: Sliders },
+    { id: 'Final Report', label: 'My Reports', icon: FileText },
+    { id: 'Research History', label: 'Research History', icon: History },
+    { id: 'Settings', label: 'Settings', icon: SettingsIcon },
   ];
 
   const reviewerItems = [
-    { id: 'Overview', label: 'Assigned Overview', icon: Home, themeColor: 'text-pink-400' },
-    { id: 'Assigned Reviews', label: 'Assigned Reviews', icon: CheckSquare, themeColor: 'text-pink-400' },
-    { id: 'Evidence Validation', label: 'Evidence Validation', icon: ShieldCheck, themeColor: 'text-emerald-400' },
-    { id: 'Review History', label: 'Review History', icon: History, themeColor: 'text-indigo-400' },
-    { id: 'Settings', label: 'Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
+    { id: 'Assigned Overview', label: 'Assigned Overview', icon: Home },
+    { id: 'Assigned Reviews', label: 'Assigned Reviews', icon: CheckSquare },
+    { id: 'Evidence Validation', label: 'Evidence Validation', icon: ShieldCheck },
+    { id: 'Review History', label: 'Review History', icon: History },
+    { id: 'Settings', label: 'Settings', icon: SettingsIcon },
   ];
 
   const adminItems = [
-    { id: 'Overview', label: 'Platform Overview', icon: Home, themeColor: 'text-sky-400' },
-    { id: 'User Management', label: 'User Management', icon: Users, themeColor: 'text-sky-400' },
-    { id: 'Review Assignments', label: 'Review Assignments', icon: CheckSquare, themeColor: 'text-emerald-400' },
-    { id: 'Audit Logs', label: 'Security Audit Logs', icon: Lock, themeColor: 'text-rose-400' },
-    { id: 'Settings', label: 'Platform Settings', icon: SettingsIcon, themeColor: 'text-gray-400' },
+    { id: 'Platform Overview', label: 'Platform Overview', icon: Home },
+    { id: 'User Management', label: 'User Management', icon: Users },
+    { id: 'Review Assignments', label: 'Review Assignments', icon: CheckSquare },
+    { id: 'Audit Logs', label: 'Security Audit Logs', icon: Lock },
+    { id: 'Settings', label: 'Platform Settings', icon: SettingsIcon },
   ];
 
   const isReviewer = user?.role === 'REVIEWER';
   const isAdmin = user?.role === 'ADMIN';
 
-  // Role-based sidebar backgrounds & borders
   const sidebarClass = isAdmin
     ? 'bg-[#0F172A] border-[#2A364F]'
     : isReviewer
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
                 ProofTrail AI
               </div>
               <div className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${brandColor}`}>
-                {user?.role || 'RESEACHER'} WORKSPACE
+                {user?.role || 'RESEARCHER'} WORKSPACE
               </div>
             </div>
           </div>
@@ -110,17 +110,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
+            const featureTheme = getFeatureTheme(item.id);
+
             return (
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-white/10 text-white border border-white/20 shadow-sm'
+                    ? `${featureTheme.sidebarActiveBg} ${featureTheme.sidebarActiveText} border ${featureTheme.sidebarActiveBorder} shadow-sm font-bold`
                     : 'text-gray-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${item.themeColor}`} />
+                <Icon className={`w-4 h-4 ${isActive ? featureTheme.sidebarActiveText : 'text-gray-400'}`} />
                 <span>{item.label}</span>
               </button>
             );
@@ -152,7 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-gray-300 flex items-center gap-1.5 text-[11px]">
+            <span className="text-gray-400 flex items-center gap-1.5 text-[11px]">
               <Search className="w-3 h-3 text-gray-400" /> Tavily Search:
             </span>
             <span
@@ -167,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-gray-300 flex items-center gap-1.5 text-[11px]">
+            <span className="text-gray-400 flex items-center gap-1.5 text-[11px]">
               <Database className="w-3 h-3 text-gray-400" /> SQLite DB:
             </span>
             <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">
