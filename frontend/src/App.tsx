@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -15,6 +15,19 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [currentTab, setCurrentTab] = useState('Home');
+
+  // Automatically adjust initial active tab based on authenticated user's role
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'REVIEWER') {
+        setCurrentTab('Assigned Overview');
+      } else if (user.role === 'ADMIN') {
+        setCurrentTab('Platform Overview');
+      } else {
+        setCurrentTab('Home');
+      }
+    }
+  }, [user?.role, user?.user_id]);
 
   if (loading) {
     return (
@@ -70,7 +83,7 @@ function AppContent() {
 
   return (
     <div className={`flex min-h-screen ${featureTheme.bgGradient} text-gray-100 transition-colors duration-300 relative`}>
-      {/* Optional Feature Background Overlay Pattern */}
+      {/* Feature Background Overlay Pattern */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-5 pointer-events-none mix-blend-overlay"
         style={{ backgroundImage: `url(${featureTheme.bgImageUrl})` }}
