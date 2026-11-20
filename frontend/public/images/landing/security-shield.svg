@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" rx="16" fill="#0F172A" stroke="#14B8A6"/>
+  <path d="M200 40 L320 80 V170 C320 230 200 270 200 270 C200 270 80 230 80 170 V80 L200 40 Z" fill="#115E59" stroke="#14B8A6" stroke-width="4"/>
+  <path d="M165 145 L190 170 L245 115" stroke="#5EEAD4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="200" y="240" text-anchor="middle" fill="#5EEAD4" font-family="sans-serif" font-size="12" font-weight="bold">Deterministic Security Shield</text>
+</svg>
