@@ -1,13 +1,32 @@
 # ProofTrail AI — The Evidence Intelligence Engine
 
-> ODSC × Nebius Hackathon submission · Challenge: *Build a research agent that brings its sources*
+> ODSC × Nebius Hackathon Submission · Challenge: *Build a research agent that brings its sources*
 
-**One-line pitch:** ProofTrail AI transforms research questions into structured, sourced, verifiable research reports using live web search, open-model AI reasoning, claim verification, and transparent citations.
+**One-line pitch:** ProofTrail AI transforms research questions into structured, sourced, verifiable research reports and decision briefs using live web search, open-model AI reasoning, claim verification, source-quality analysis, website importing, document intelligence, and transparent citations.
 
 - **Tagline:** *"Don't Just Trust the Answer. Trace the Evidence."*
-- **Demo video (2–3 min):** [ProofTrail AI Walkthrough Video](https://github.com/vedantuj-lab/Tech-Dyanmites_PROOFTRAIL-AI) *(Video link placeholder)*
-- **Team:** Tech-Dynamites (`vedantuj-lab`)
 - **Repository:** [https://github.com/vedantuj-lab/Tech-Dyanmites_PROOFTRAIL-AI](https://github.com/vedantuj-lab/Tech-Dyanmites_PROOFTRAIL-AI)
+- **Latest Commit:** `c7593be`
+- **Live Server URL:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+---
+
+## 🌟 What's New in ProofTrail AI v1.0 Enterprise Platform
+
+1. **Multi-Role RBAC & Workspaces**:
+   - **Researcher Workspace:** Multi-stage web investigations, research planning, claim matrix, conflict detector, decision briefs, PDF report exporter, website importer, document intelligence library, watchlist, collections.
+   - **Analyst / Reviewer Workspace:** Peer-review editor workspace, evidence annotation, version comparison, and decision submission (`Approved`, `Approved with Observations`, `Revision Required`, `Rejected`).
+   - **Administrator Control Hub:** User management directory, role permissions, reviewer workload assignments, platform analytics, security audit logs.
+2. **Real-World High-Resolution Professional Photography**:
+   - 13 high-resolution photographs stored locally in `frontend/public/images/` covering multi-monitor research analyst setups, document archives, SOC security centers, and modern office split-screen login.
+3. **21 Feature-Specific Color Identities**:
+   - Distinct, synchronized feature theme palettes (`theme.ts`) that update sidebar active states, header bars, background gradients, card borders, buttons, and status badges.
+4. **1-Click Role Demo Login System**:
+   - **Aarav Mehta** (`researcher@prooftrail.demo` / `Research@123` - Researcher)
+   - **Ananya Sharma** (`reviewer@prooftrail.demo` / `Review@123` - Analyst/Reviewer)
+   - **Rohan Kapoor** (`admin@prooftrail.demo` / `Admin@123` - Administrator)
+5. **Database Migration Safeguard & Seeder**:
+   - Automated SQLite column migration safeguard (`ALTER TABLE research_sessions ADD COLUMN user_id TEXT;`) and idempotent database seeder (`scripts/seed_demo.py`).
 
 ---
 
@@ -22,30 +41,30 @@ ProofTrail AI solves this by prioritizing **evidence integrity over unverified t
 
 ---
 
-## How It Works
+## Architecture Diagram
 
 ```
-Question → Research Plan → Multi-Round Tavily Search → Source Deduplication → Nebius Inference → Claim & Evidence Extraction → Conflict Detection → Deterministic Citation Validation → Structured Report & PDF Export
+Question / URL / Document → Research Planner → Multi-Round Tavily Search → Source Deduplication → Nebius Inference → Claim & Evidence Extraction → Conflict Detection → Deterministic Citation Validation → Decision Brief & PDF Export
 ```
-
-1. **Intelligent Research Planning:** Decomposes research questions into subquestions, geographical/temporal scope, and target search dimensions.
-2. **Multi-Round Live Web Search:** Conducts controlled search stages (Discovery, Investigation, Verification) via Tavily.
-3. **Source Management & Deduplication:** Normalizes URLs, strips tracking parameters (`utm_*`, `ref`, `fbclid`), and deduplicates canonical URLs.
-4. **Evidence Intelligence Engine:** Extracts factual claims and maps verbatim, unedited supporting passages directly from source content.
-5. **Conflict & Discrepancy Detection:** Surfacing opposing statistics, methodology differences, or policy timeline variations across sources.
-6. **Deterministic Citation Validator:** Python code-level validator ensuring that every citation ID maps to a real source and that claims without verbatim evidence are flagged as `UNVERIFIED`.
-7. **Multi-Interface & PDF Export:** Provides both a rich Streamlit workspace and a CLI tool, with ReportLab PDF export.
 
 ---
 
-## Required Services
+## 21 Synchronized Feature Color Palettes
 
-| Service / Requirement | Implementation Details |
-|---|---|
-| **Nebius Token Factory (Inference)** | Model: `MiniMaxAI/MiniMax-M3` (configurable via `NEBIUS_MODEL`) — Performs question decomposition, claim extraction, evidence interpretation, conflict analysis, and report synthesis. |
-| **Tavily (Real-Time Web Search)** | Live multi-query web search adapter. Retains titles, canonical URLs, domains, snippets, publication dates, and raw text. |
-| **SQLite Database** | Stores session state, raw queries, sources, verbatim passages, claims, evidence records, conflicts, trace logs, and reports. |
-| **ReportLab** | Generates professional downloadable PDF reports with claim verification tables and reference indexes. |
+| Feature / Workspace Module | Feature Theme Palette | Sidebar Active State | Background Image Direction |
+|---|---|---|---|
+| **Overview / Home** | Royal Blue & Gold (`#3B82F6` / `#F59E0B`) | `bg-blue-500/20 text-blue-400 border-blue-500/50` | Abstract evidence network & intelligence |
+| **Research Workspace** | Deep Teal & Sea Green (`#10B981` / `#34D399`) | `bg-emerald-500/20 text-emerald-400 border-emerald-500/50` | Digital research & multi-screen workspace |
+| **Website Importer** | Burnt Orange & Terracotta (`#EA580C` / `#F97316`) | `bg-orange-500/20 text-orange-400 border-orange-500/50` | Digital web connections & data extraction |
+| **Document Library** | Royal Violet & Lavender (`#8B5CF6` / `#A78BFA`) | `bg-violet-500/20 text-violet-400 border-violet-500/50` | Organized digital documents & archives |
+| **Evidence Explorer** | Jade Green & Mint (`#34D399` / `#6EE7B7`) | `bg-emerald-400/20 text-emerald-300 border-emerald-400/50` | Connected evidence nodes & documents |
+| **Evidence Map** | Coral & Warm Pink (`#F43F5E` / `#FB7185`) | `bg-rose-500/20 text-rose-400 border-rose-500/50` | Network graphs & visual mapping |
+| **Conflict Detection** | Burgundy & Crimson (`#E11D48` / `#F43F5E`) | `bg-rose-600/20 text-rose-400 border-rose-600/50` | Analytical comparison & contradiction panels |
+| **Source Quality** | Olive Green & Gold (`#84CC16` / `#A3E635`) | `bg-lime-500/20 text-lime-400 border-lime-500/50` | Research papers & domain evaluation |
+| **Decision Intelligence** | Deep Burgundy & Champagne (`#D97706` / `#F59E0B`)| `bg-amber-600/20 text-amber-400 border-amber-600/50` | Executive strategy & decision analysis |
+| **Assigned Reviews (Reviewer)**| Dark Plum & Soft Rose (`#EC4899` / `#F472B6`) | `bg-pink-500/20 text-pink-400 border-pink-500/50` | Professional peer-review environment |
+| **User Management (Admin)** | Sky Blue & Copper (`#38BDF8` / `#0284C7`) | `bg-sky-500/20 text-sky-400 border-sky-500/50` | Team & account management |
+| **Audit Logs (Admin)** | Dark Charcoal & Crimson (`#F87171` / `#EF4444`)| `bg-red-500/20 text-red-400 border-red-500/50` | Security event tracking & audit trails |
 
 ---
 
@@ -53,7 +72,7 @@ Question → Research Plan → Multi-Round Tavily Search → Source Deduplicatio
 
 ### 1. Prerequisites
 - Python 3.11+
-- Virtual environment tool (`venv`)
+- Node.js 18+ and `npm`
 
 ### 2. Quickstart
 
@@ -62,93 +81,34 @@ Question → Research Plan → Multi-Round Tavily Search → Source Deduplicatio
 git clone https://github.com/vedantuj-lab/Tech-Dyanmites_PROOFTRAIL-AI.git
 cd Tech-Dyanmites_PROOFTRAIL-AI
 
-# Create and activate a virtual environment
-python -m venv .venv
-# On Linux/macOS:
-source .venv/bin/activate
-# On Windows (PowerShell):
-.venv\Scripts\Activate.ps1
-
-# Install reproducible dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 
 # Configure environment variables
 cp .env.example .env
+
+# Seed Demo Database & Accounts
+python scripts/seed_demo.py
+
+# Build React Frontend
+cd frontend
+npm install
+npm run build
+cd ..
+
+# Launch FastAPI Web Server
+python -m uvicorn src.api:app --host 0.0.0.0 --port 8000
 ```
 
-Edit `.env` to add your API credentials:
-```env
-NEBIUS_API_KEY=your_nebius_api_key
-NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1
-NEBIUS_MODEL=MiniMaxAI/MiniMax-M3
-TAVILY_API_KEY=your_tavily_api_key
-APP_ENV=development
-DATABASE_PATH=data/prooftrail.db
-MOCK_MODE=false
-```
-
-*Note: If API keys are omitted or `MOCK_MODE=true` is set, ProofTrail AI safely runs in local deterministic Mock Mode for offline evaluation and testing.*
+Open **`http://127.0.0.1:8000`** in your browser.
 
 ---
 
-## Usage Instructions
+## Demo Accounts (1-Click Sign-In)
 
-### 1. Command Line Interface (CLI)
-Run a research investigation directly from your terminal:
-
-```bash
-python src/agent.py "Should a startup enter India's EV charging market in 2027?"
-```
-
-To automatically generate a PDF report:
-```bash
-python src/agent.py "Evaluate commercial viability of small modular nuclear reactors for datacenter power by 2030." --pdf
-```
-
-### 2. Streamlit Web Workspace
-Launch the interactive 5-screen web application:
-
-```bash
-streamlit run app.py
-```
-
-Access the UI at `http://localhost:8501`.
-
-The Streamlit interface provides:
-- **Home:** Product overview, architecture, sample questions.
-- **Workspace:** Real-time search configuration, API health check, live research trace log.
-- **Evidence Explorer:** Interactive claim matrix, verbatim supporting passages, conflict analysis, source quality scores.
-- **Final Report:** Executive summary, key findings, limitations, references, and PDF download.
-- **Research History:** Past research sessions stored in SQLite with full reloading and deletion capabilities.
-
----
-
-## Example Research Execution
-
-**Question:** *"Should a startup enter India's EV charging market in 2027?"*
-
-**Report Excerpt:**
-> **Executive Summary:** Entering India's EV charging market in 2027 presents high strategic potential driven by a projected 32.5% CAGR through 2030 [SRC_001]. However, operators face high fixed demand charges per kVA from state electricity boards, stretching profitability payback to 4–5 years [SRC_003].
-
-**Claim Verification Summary:**
-- `[SUPPORTED]` Market projected to reach $4.1B by 2030 (32.5% CAGR). -> *Passage matched in [SRC_001]*
-- `[SUPPORTED]` Ministry provides up to 70% capital subsidies for public fast chargers. -> *Passage matched in [SRC_002]*
-- `[PARTIALLY_SUPPORTED]` High upfront grid connection fees pose margin risks. -> *Passage matched in [SRC_003]*
-
-**Verified References:**
-- `[SRC_001]` India EV Charging Infrastructure Market Size Report 2024–2030 (`grandviewresearch.com`)
-- `[SRC_002]` NITI Aayog National EV Charging Infrastructure Guidelines (`niti.gov.in`)
-- `[SRC_003]` Tata Power EZ Charge Operational Expansion Update (`tatapower.com`)
-
----
-
-## Failure & Insufficient-Evidence Handling
-
-If search returns no accessible results or Tavily API fails:
-1. ProofTrail AI will not fabricate an answer or fake citations.
-2. The orchestrator sets session status to `INSUFFICIENT_EVIDENCE`.
-3. The report explicitly documents research limitations and missing dimensions.
-4. If an LLM generates a citation reference to a nonexistent source ID (e.g. `[SRC_999]`), the deterministic validator flags the error and reclassifies unsupported claims to `UNVERIFIED`.
+- **Researcher Account:** `researcher@prooftrail.demo` / `Research@123` (Name: *Aarav Mehta*)
+- **Analyst / Reviewer Account:** `reviewer@prooftrail.demo` / `Review@123` (Name: *Ananya Sharma*)
+- **Administrator Account:** `admin@prooftrail.demo` / `Admin@123` (Name: *Rohan Kapoor*)
 
 ---
 
@@ -157,44 +117,14 @@ If search returns no accessible results or Tavily API fails:
 Run the full automated test suite using Pytest:
 
 ```bash
-pytest -v
+python -m pytest -v
 ```
 
-Check Python syntax compilation:
+Build Vite TypeScript production bundle:
 
 ```bash
-python -m compileall src
+cd frontend && npm run build
 ```
-
-### Security Measures:
-- **Prompt Injection Defense:** Web content retrieved via Tavily is sanitized to remove prompt override attempts (e.g., `ignore previous instructions`).
-- **Secret Protection:** API keys are loaded strictly from environment variables and never logged or exposed in UI state.
-
----
-
-## Docker Instructions
-
-Build and run ProofTrail AI using Docker:
-
-```bash
-# Build Docker image
-docker build -t prooftrail-ai .
-
-# Run Docker container
-docker run -d -p 8501:8501 --env-file .env prooftrail-ai
-```
-
----
-
-## Judging Criteria Mapping
-
-| Criterion | Weight | How ProofTrail AI Meets It & Where to Look |
-|---|---|---|
-| **Sourced and Verifiable Answers** | **30%** | Claims connected to verbatim source passages; deterministic citation validation (`src/services/citation_validator.py`, `src/services/evidence_engine.py`). |
-| **Works End to End** | **25%** | Complete CLI (`src/agent.py`), Streamlit app (`app.py`), SQLite storage (`src/database/db.py`), and PDF export (`src/utils/pdf_export.py`). |
-| **Usefulness** | **20%** | Solves LLM hallucinations and hidden conflicts for researchers, analysts, and founders. |
-| **Agent Design** | **15%** | Decomposed planner, multi-stage researcher, evidence engine, conflict detector, quality assessor, synthesizer, and orchestrator (`src/agent_core/`). |
-| **Use of Token Factory & Tavily** | **10%** | Nebius Token Factory inference (`src/services/nebius.py`) and Tavily web search (`src/services/tavily.py`). |
 
 ---
 
